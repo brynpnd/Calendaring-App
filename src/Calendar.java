@@ -3,7 +3,34 @@ import java.util.*;
 
 public class Calendar {
 
+	private Scanner scan;
+	
 	public static void main(String args[]) {
+		
+		Calendar c = new Calendar();
+
+	}
+	
+	public Calendar() {
+		
+		scan = new Scanner(System.in);
+		
+		boolean inputValid = false;
+		
+		while(inputValid == false) {
+			System.out.print("Would you like to (c)reate a new .ics file or (f)ind free time between them? ");
+			String input = scan.next();
+			
+			switch(input) {
+				case "c": createICSFile(); inputValid = true; break; // create .ics file
+				case "f": findFreeTime(); inputValid = true; break; // find free time
+				default: System.out.println("Invalid entry.");
+			}
+		}
+		
+	}
+	
+	public void createICSFile() {
 		
 		String filename, version, classification, location, summary, priority,
 		DTSTART, DTEND, timeZone;
@@ -12,8 +39,7 @@ public class Calendar {
 		priority = new String("");
 		
 		System.out.print("Enter the file name to be saved (no spaces): ");
-		Scanner scan = new Scanner(System.in);
-		
+
 		filename = scan.next();
 		version = "VERSION:2.0";
 		
@@ -88,6 +114,27 @@ public class Calendar {
 		
 		System.out.println("Complete!");
 		
+		
 	}
+	
+	public void findFreeTime() {
+		
+		boolean inputValid = false;
+		while(inputValid == false) {
+			System.out.println("Enter the pathname of the .ics files you would like to examine, separated by commas:  ");
+
+			// Parse strings by commas
+			// Check if files exist
+			// Check for .ics file correctness (last priority)
+			// Grab dates and times of all .ics files
+			// Find dates and times between .ics files
+			// Create new .ics files with date and times between .ics files
+			
+			inputValid = true;
+		}
+		
+	}
+		
+
 	
 }
