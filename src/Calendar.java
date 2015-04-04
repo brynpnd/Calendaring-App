@@ -1,4 +1,6 @@
 import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class Calendar {
@@ -119,19 +121,52 @@ public class Calendar {
 	
 	public void findFreeTime() {
 		
+		List<File> files = new ArrayList<File>();
+
 		boolean inputValid = false;
 		while(inputValid == false) {
-			System.out.println("Enter the pathname of the .ics files you would like to examine, separated by commas:  ");
-
+			System.out.println("Enter the pathname of the .ics files you would like to examine, separated by commas (no spaces):");
+			String input = scan.next();
+			
 			// Parse strings by commas
+			List<String> fileNames = Arrays.asList(input.split(","));
+			File[] f = new File[fileNames.size()];
+			
+			inputValid = true;			
 			// Check if files exist
-			// Check for .ics file correctness (last priority)
-			// Grab dates and times of all .ics files
+			for(int i = 0; i < fileNames.size(); i++) {
+				
+				f[i] = new File(fileNames.get(i));
+				
+				if(f[i].isFile() == false) {
+					inputValid = false;
+					System.out.println("File " + fileNames.get(i) + " does not exist!");
+				}
+
+			}
+			
+			if(inputValid == true) {
+				for(int i = 0; i < f.length; i++) {
+					files.add(f[i]);
+				}
+			}
+			
+			// Check for .ics file correctness (last priority)			
+
+		}
+		
+		// Grab dates and times of all .ics files
+		List<String> dateStrings = new ArrayList<String>();
+		List<String> timeStrings = new ArrayList<String>();
+		
+		for(int i = 0; i < files.size(); i++) {
+			
+		}
+		
 			// Find dates and times between .ics files
 			// Create new .ics files with date and times between .ics files
 			
-			inputValid = true;
-		}
+
 		
 	}
 		
