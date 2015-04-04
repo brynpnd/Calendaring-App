@@ -5,6 +5,8 @@ import java.util.*;
 
 public class Calendar {
 
+	public final String TIMEZONE = "TZID=Pacific/Honolulu:";
+	
 	private Scanner scan;
 	
 	public static void main(String args[]) {
@@ -92,8 +94,8 @@ public class Calendar {
 		System.out.print("Enter an end time as HHMMSS (24-hour clock): ");
 		String endTime = scan.next();
 
-		DTSTART = "DTSTART;TZID=Pacific/Honolulu:" + startDate + "T" + startTime;
-		DTEND = "DTEND;TZID=Pacific/Honolulu:" + endDate + "T" + endTime;
+		DTSTART = "DTSTART;" + TIMEZONE + startDate + "T" + startTime;
+		DTEND = "DTEND;" + TIMEZONE + endDate + "T" + endTime;
 
 		try {
 			PrintWriter out = new PrintWriter(filename + ".ics");	
@@ -151,20 +153,69 @@ public class Calendar {
 				}
 			}
 			
-			// Check for .ics file correctness (last priority)			
+			// Still have to check .ics files for correctness			
 
 		}
 		
-		// Grab dates and times of all .ics files
-		List<String> dateStrings = new ArrayList<String>();
-		List<String> timeStrings = new ArrayList<String>();
+		/*** Grab dates and times of all .ics files ***/
+		List<String> startDateStrings = new ArrayList<String>();
+		List<String> startTimeStrings = new ArrayList<String>();
+		List<String> endDateStrings = new ArrayList<String>();
+		List<String> endTimeStrings = new ArrayList<String>();
+		List<String> fileStrings = new ArrayList<String>();
 		
+		// Convert file content to String
 		for(int i = 0; i < files.size(); i++) {
-			
+			File f = files.get(i);
+			FileInputStream fis;
+			try {
+				fis = new FileInputStream(f);
+				byte[] data = new byte[(int) f.length()];
+				try {
+					fis.read(data);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				try {
+					fis.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				
+				try {
+					fileStrings.add(new String(data, "UTF-8"));
+					System.out.println(fileStrings.get(i));
+				} catch (UnsupportedEncodingException e) {
+					e.printStackTrace();
+				}
+				
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}			
 		}
 		
-			// Find dates and times between .ics files
-			// Create new .ics files with date and times between .ics files
+		// Find and separate date and time Strings
+		for(int i = 0; i < fileStrings.size(); i++) {
+			String currString = fileStrings.get(i);
+			
+			int index = currString.indexOf(TIMEZONE);
+			int start = index;
+			while(!Character.isDigit(currString.charAt(start))) 
+				start++;
+
+			int end = start;
+			while(currString.charAt(end) != '\n')
+				end++;
+			
+			end--;
+
+			startDateStrings.add(currString.substring(start, start+8));
+			startTimeStrings.add(currString.substring(start+9,end));
+		}
+				
+		// Find dates and times between .ics files
+		
+		// Create new .ics files with date and times between .ics files
 			
 
 		
