@@ -9,6 +9,8 @@ public class Calendar {
 	public final String TIMEZONE = "TZID=Pacific/Honolulu:";
 	
 	private Scanner scan;
+	private List<Event> gaps; 
+	private List<Event> events;
 	
 	public static void main(String args[]) {
 		
@@ -212,7 +214,7 @@ public class Calendar {
 		}
 				
 		/*** Find dates and times between .ics files ***/
-		List<Event> events = new ArrayList<Event>();
+		events = new ArrayList<Event>();
 		
 		for(int i = 0; i < startTimeStrings.size(); i++) {
 			events.add(new Event(startDateStrings.get(i),endDateStrings.get(i),startTimeStrings.get(i),endTimeStrings.get(i)));
@@ -257,18 +259,9 @@ public class Calendar {
 			if(k != i)
 				i--;
 		}
-
-		System.out.println("Events");
-		for(int i = 0; i < events.size(); i++) {
-			System.out.println(String.valueOf(events.get(i).getStartDate()));
-			System.out.println(String.valueOf(events.get(i).getStartTime()));
-			System.out.println(String.valueOf(events.get(i).getEndDate()));
-			System.out.println(String.valueOf(events.get(i).getEndTime()));
-		}
-
-		
+	
 		// Find gaps between dates and times
-		List<Event> gaps = new ArrayList<Event>();
+		gaps = new ArrayList<Event>();
 		
 		for(int i = 0; i < events.size()-1; i++) {
 			
@@ -294,15 +287,6 @@ public class Calendar {
 			}
 			
 		}
-		
-		System.out.println("Gaps");
-		for(int i = 0; i < gaps.size(); i++) {
-			System.out.println(String.valueOf(gaps.get(i).getStartDate()));
-			System.out.println(String.valueOf(gaps.get(i).getStartTime()));
-			System.out.println(String.valueOf(gaps.get(i).getEndDate()));
-			System.out.println(String.valueOf(gaps.get(i).getEndTime()));
-		}
-		
 		
 		// Create new .ics files with date and times between .ics files
 		for(int i = 0; i < gaps.size(); i++) {
@@ -342,70 +326,14 @@ public class Calendar {
 		}
 		
 	}
-		
-	public class Event {
-		
-		private int startTime;
-		private int endTime;
-		private int startDate;
-		private int endDate;
-		
-		public Event(int startD, int endD, int startT, int endT) {
-			
-			startDate = startD;
-			endDate = endD;
-			startTime = startT;
-			endTime = endT;
-			
-		}
-		
-		public Event(String startD, String endD, String startT, String endT) {
-			
-			startDate = Integer.parseInt(startD);
-			endDate = Integer.parseInt(endD);
-			startTime = Integer.parseInt(startT);
-			endTime = Integer.parseInt(endT);
-			
-		}
-		
-		public int getStartDate() {
-			return startDate;
-		}
-		
-		public int getEndDate() {
-			return endDate;
-		}
-		
-		public int getStartTime() {
-			return startTime;
-		}
-		
-		public int getEndTime() {
-			return endTime;
-		}
-		
-		public String getStartDateString() {
-			return String.valueOf(startDate);
-		}
-		
-		public String getEndDateString() {
-			return String.valueOf(endDate);
-		}
-		
-		public String getStartTimeString() {
-			if(startTime < 100000)
-				return "0" + String.valueOf(startTime);
-			else
-				return String.valueOf(startTime);
-		}
-		
-		public String getEndTimeString() {
-			if(endTime < 100000)
-				return "0" + String.valueOf(endTime);
-			else
-				return String.valueOf(endTime);
-		}
+	
+	public List<Event> getEvents() {
+		return events;
 	}
-
+	
+	public List<Event> getGaps() {
+		return gaps;
+	}
+		
 	
 }
