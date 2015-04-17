@@ -1,4 +1,3 @@
-
 public class Event {
 		
 		private int startTime;

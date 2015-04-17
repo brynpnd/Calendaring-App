@@ -25,16 +25,93 @@ public class Calendar {
 		boolean inputValid = false;
 		
 		while(inputValid == false) {
-			System.out.print("Would you like to (c)reate a new .ics file or (f)ind free time between them? ");
+			System.out.print("Would you like to (c)reate a new .ics file, (f)ind free time between them, or (d)iscover possible meeting times on a given day between two people? ");
 			String input = scan.next();
 			
 			switch(input) {
 				case "c": createICSFile(); inputValid = true; break; // create .ics file
+				case "d": meetingTimes(); inputValid = true; break; // find meeting times
 				case "f": findFreeTime(); inputValid = true; break; // find free time
 				default: System.out.println("Invalid entry.");
 			}
 		}
 		
+	}
+	
+	public void meetingTimes() {
+		
+		List<String> fileStringsA = new ArrayList<String>();
+		List<String> fileStringsB = new ArrayList<String>();
+
+		// Get files for Person A
+		boolean inputValid = false;
+		while(inputValid == false) {
+			System.out.println("Enter the pathname of the .ics files you would like to examine for Person A, separated by commas (no spaces):");
+			String input = scan.next();
+			
+			// Parse strings by commas
+			List<String> fileNames = Arrays.asList(input.split(","));
+			File[] f = new File[fileNames.size()];
+			
+			inputValid = true;			
+			// Check if files exist
+			for(int i = 0; i < fileNames.size(); i++) {
+				
+				f[i] = new File(fileNames.get(i));
+				
+				if(f[i].isFile() == false) {
+					inputValid = false;
+					System.out.println("File " + fileNames.get(i) + " does not exist!");
+				}
+
+			}
+			// Get all .ics files with the summary Free Time
+			if(inputValid == true) {
+				for(int i = 0; i < f.length; i++) {
+					String fileString = fileToString(f[i]);
+					
+					if(isFreeTime(fileString))
+						fileStringsA.add(fileString);
+				}
+			}
+		}
+		
+		// Get files for Person B
+		inputValid = false;
+		while(inputValid == false) {
+			System.out.println("Enter the pathname of the .ics files you would like to examine for Person B, separated by commas (no spaces):");
+			String input = scan.next();
+			
+			// Parse strings by commas
+			List<String> fileNames = Arrays.asList(input.split(","));
+			File[] f = new File[fileNames.size()];
+			
+			inputValid = true;			
+			// Check if files exist
+			for(int i = 0; i < fileNames.size(); i++) {
+				
+				f[i] = new File(fileNames.get(i));
+				
+				if(f[i].isFile() == false) {
+					inputValid = false;
+					System.out.println("File " + fileNames.get(i) + " does not exist!");
+				}
+
+			}
+			
+			// Get all .ics files with the summary Free Time
+			if(inputValid == true) {
+				for(int i = 0; i < f.length; i++) {
+					String fileString = fileToString(f[i]);
+					if(isFreeTime(fileString))
+						fileStringsB.add(fileString);
+				}
+			}
+		}
+		
+		// Find common times
+		
+		// Output .ics file with common time
 	}
 	
 	public void createICSFile() {
@@ -334,6 +411,48 @@ public class Calendar {
 	public List<Event> getGaps() {
 		return gaps;
 	}
-		
 	
+	public String fileToString(File f) {
+		// Convert file content into String
+		FileInputStream fis;
+		String fileString = new String();
+		try {
+			fis = new FileInputStream(f);
+			byte[] data = new byte[(int) f.length()];
+			try {
+				fis.read(data);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			try {
+				fis.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			
+			try {
+				fileString = new String(data, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}			
+		
+		return fileString;
+	}
+	
+	public boolean isFreeTime(String fileString) {
+		
+		// Find out if summary states "Free Time"
+		int index = fileString.indexOf("SUMMARY:");
+		int start = index+8;
+		int end = start+9;
+
+		String s = fileString.substring(start,end);
+		if(s.equals("Free Time"))
+			return true;
+		else
+			return false;
+	}
 }
