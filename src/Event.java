@@ -5,6 +5,13 @@ public class Event {
 		private int startDate;
 		private int endDate;
 		
+		public Event() {
+			startTime = 0;
+			endTime = 0;
+			startDate = 0;
+			endDate = 0;
+		}
+		
 		public Event(int startD, int endD, int startT, int endT) {
 			
 			startDate = startD;

@@ -3,6 +3,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+/** To-Do:
+ * 
+ * - Simplify getEndDate()
+ * - Check if .ics files are valid
+ * - sortEventsStartTime() for finding free times
+ * - assert tests for input of common times
+ */
+
 public class Calendar {
 
 	public final String VERSION = "VERSION:2.0";
@@ -11,6 +19,7 @@ public class Calendar {
 	private Scanner scan;
 	private List<Event> gaps; 
 	private List<Event> events;
+	private List<Event> commonTimes;
 	
 	public static void main(String args[]) {
 		
@@ -40,6 +49,7 @@ public class Calendar {
 	
 	public void meetingTimes() {
 		
+		String meetingDay = new String();
 		List<String> fileStringsA = new ArrayList<String>();
 		List<String> fileStringsB = new ArrayList<String>();
 
@@ -65,12 +75,23 @@ public class Calendar {
 				}
 
 			}
+			
 			// Get all .ics files with the summary Free Time
+			meetingDay = getFileStartDate(fileToString(f[0]));
+			
 			if(inputValid == true) {
-				for(int i = 0; i < f.length; i++) {
+				for(int i = 0; i < f.length && inputValid == true; i++) {
 					String fileString = fileToString(f[i]);
 					
-					if(isFreeTime(fileString))
+					// Must check if all .ics files are on same date
+					String startDate = getFileStartDate(fileString);
+					String endDate = getFileEndDate(fileString);
+					if(!startDate.equals(endDate) || !startDate.equals(meetingDay)) {
+						inputValid = false;
+						System.out.println("All .ics files must be on the same day");
+					}	
+					
+					else if(isFreeTime(fileString))
 						fileStringsA.add(fileString);
 				}
 			}
@@ -100,18 +121,166 @@ public class Calendar {
 			}
 			
 			// Get all .ics files with the summary Free Time
+			meetingDay = getFileStartDate(fileToString(f[0]));
+			
 			if(inputValid == true) {
 				for(int i = 0; i < f.length; i++) {
 					String fileString = fileToString(f[i]);
-					if(isFreeTime(fileString))
+					
+					// Must check if all .ics files are on same date
+					String startDate = getFileStartDate(fileString);
+					String endDate = getFileEndDate(fileString);
+					if(!startDate.equals(endDate) || !startDate.equals(meetingDay)) {
+						inputValid = false;
+						System.out.println("All .ics files must be on the same day");
+					}	
+					
+					else if(isFreeTime(fileString))
 						fileStringsB.add(fileString);
 				}
 			}
 		}
 		
-		// Find common times
+		/*** Find common times ***/
+		ArrayList<String> startTimeStringsA = new ArrayList<String>();
+		ArrayList<String> startTimeStringsB = new ArrayList<String>();
+		ArrayList<String> endTimeStringsA = new ArrayList<String>();
+		ArrayList<String> endTimeStringsB = new ArrayList<String>();
 		
-		// Output .ics file with common time
+		// Find start and end time strings for person A		
+		for(int i = 0; i < fileStringsA.size(); i++) {
+			String currString = fileStringsA.get(i);
+			
+			int index = currString.indexOf(TIMEZONE);
+			int start = index;
+			while(!Character.isDigit(currString.charAt(start))) 
+				start++;
+
+			int end = start;
+			while(currString.charAt(end) != '\n')
+				end++;
+			
+			end--;
+
+			startTimeStringsA.add(currString.substring(start+9,end));
+			
+			start = end;
+			
+			while(!Character.isDigit(currString.charAt(start))) 
+				start++;
+			
+			end = start;
+			
+			while(currString.charAt(end) != '\n')
+				end++;
+			
+			end--;
+		
+			endTimeStringsA.add(currString.substring(start+9,end));				
+		}
+		
+		// Find start and end time strings for person B	
+		for(int i = 0; i < fileStringsB.size(); i++) {
+			String currString = fileStringsB.get(i);
+			
+			int index = currString.indexOf(TIMEZONE);
+			int start = index;
+			while(!Character.isDigit(currString.charAt(start))) 
+				start++;
+
+			int end = start;
+			while(currString.charAt(end) != '\n')
+				end++;
+			
+			end--;
+
+			startTimeStringsB.add(currString.substring(start+9,end));
+			
+			start = end;
+			
+			while(!Character.isDigit(currString.charAt(start))) 
+				start++;
+			
+			end = start;
+			
+			while(currString.charAt(end) != '\n')
+				end++;
+			
+			end--;
+		
+			endTimeStringsB.add(currString.substring(start+9,end));				
+		}
+		
+		// Sort events by start time for person A and B
+		ArrayList<Event> freeTimesA = new ArrayList<Event>();
+		ArrayList<Event> freeTimesB = new ArrayList<Event>();
+
+		for(int i = 0; i < startTimeStringsA.size(); i++) {
+			freeTimesA.add(new Event(meetingDay,meetingDay,startTimeStringsA.get(i),endTimeStringsA.get(i)));
+		}
+		for(int i = 0; i < startTimeStringsB.size(); i++) {
+			freeTimesB.add(new Event(meetingDay,meetingDay,startTimeStringsB.get(i),endTimeStringsB.get(i)));
+		}
+		
+		sortEventsStartTime(freeTimesA);
+		sortEventsStartTime(freeTimesB);
+		
+		// Check for common times
+		commonTimes = new ArrayList<Event>();
+		
+		for(int i = 0; i < freeTimesA.size(); i++) {
+			
+			Event freeTimeA = freeTimesA.get(i);
+			int meetingDayNum = Integer.parseInt(meetingDay);
+			int freeTimeStartA = freeTimeA.getStartTime();
+			int freeTimeEndA = freeTimeA.getEndTime();
+			Event e = new Event();
+			
+			for(int j = 0; j < freeTimesB.size(); j++) {
+				
+				Event freeTimeB = freeTimesB.get(j);
+				int freeTimeStartB = freeTimeB.getStartTime();
+				int freeTimeEndB = freeTimeB.getEndTime();
+			
+				if(freeTimeStartA >= freeTimeStartB && freeTimeEndB > freeTimeStartA) {
+					if(freeTimeEndB > freeTimeEndA) {
+						e = new Event(meetingDayNum,meetingDayNum,freeTimeStartA,freeTimeEndA);
+					}				
+					else if(freeTimeEndB <= freeTimeEndA) {
+						e = new Event(meetingDayNum,meetingDayNum,freeTimeStartA,freeTimeEndB);
+					}					
+					
+					commonTimes.add(e);
+				}
+				
+				else if(freeTimeStartA < freeTimeStartB && freeTimeEndA > freeTimeStartB) {
+					if(freeTimeEndA > freeTimeEndB) {
+						e = new Event(meetingDayNum,meetingDayNum,freeTimeStartB,freeTimeEndB);
+					}
+					else if(freeTimeEndA <= freeTimeEndB) {
+						e = new Event(meetingDayNum,meetingDayNum,freeTimeStartB,freeTimeEndA);
+					}
+					
+					commonTimes.add(e);
+				}
+				
+			}
+			
+		}
+		
+		// Output .ics files with common time
+		for(int i = 0; i < commonTimes.size(); i++) {
+			
+			Event currCT = commonTimes.get(i);
+			
+			String DTSTART = "DTSTART;" + TIMEZONE + currCT.getStartDateString() + "T" + currCT.getStartTimeString();
+			String DTEND = "DTEND;" + TIMEZONE + currCT.getEndDateString() + "T" + currCT.getEndTimeString();
+			
+			printICSFile("commontime_" + String.valueOf(i), VERSION, "CLASS:PUBLIC", "PRIORITY:1", "LOCATION:",
+					"SUMMARY:POSSIBLE MEETING TIME", DTSTART, DTEND);
+		}
+		
+		System.out.println("Complete!");
 	}
 	
 	public void createICSFile() {
@@ -215,7 +384,7 @@ public class Calendar {
 				}
 			}
 			
-			// Still have to check .ics files for correctness			
+			// Still have to check inputted .ics files for correctness			
 
 		}
 		
@@ -229,30 +398,7 @@ public class Calendar {
 		// Convert file content to String
 		for(int i = 0; i < files.size(); i++) {
 			File f = files.get(i);
-			FileInputStream fis;
-			try {
-				fis = new FileInputStream(f);
-				byte[] data = new byte[(int) f.length()];
-				try {
-					fis.read(data);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				try {
-					fis.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				
-				try {
-					fileStrings.add(new String(data, "UTF-8"));
-				} catch (UnsupportedEncodingException e) {
-					e.printStackTrace();
-				}
-				
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			}			
+			fileStrings.add(fileToString(f));
 		}
 		
 		// Find and separate date and time Strings
@@ -412,7 +558,11 @@ public class Calendar {
 		return gaps;
 	}
 	
-	public String fileToString(File f) {
+	public List<Event> getCommonTimes() {
+		return commonTimes;
+	}
+	
+	private String fileToString(File f) {
 		// Convert file content into String
 		FileInputStream fis;
 		String fileString = new String();
@@ -442,7 +592,7 @@ public class Calendar {
 		return fileString;
 	}
 	
-	public boolean isFreeTime(String fileString) {
+	private boolean isFreeTime(String fileString) {
 		
 		// Find out if summary states "Free Time"
 		int index = fileString.indexOf("SUMMARY:");
@@ -454,5 +604,72 @@ public class Calendar {
 			return true;
 		else
 			return false;
+	}
+	
+	private String getFileStartDate(String fileString) {
+		
+		int index = fileString.indexOf(TIMEZONE);
+		int start = index;
+		while(!Character.isDigit(fileString.charAt(start))) 
+			start++;
+
+		int end = start;
+		while(fileString.charAt(end) != '\n')
+			end++;
+		
+		end--;
+
+		return fileString.substring(start, start+8);
+	}
+	
+	private String getFileEndDate(String fileString) {
+		
+		int index = fileString.indexOf(TIMEZONE);
+		int start = index;
+		while(!Character.isDigit(fileString.charAt(start))) 
+			start++;
+
+		int end = start;
+		while(fileString.charAt(end) != '\n')
+			end++;
+		
+		end--;
+		start = end;
+		
+		while(!Character.isDigit(fileString.charAt(start))) 
+			start++;
+		
+		end = start;
+		
+		while(fileString.charAt(end) != '\n')
+			end++;
+		
+		end--;
+		
+		return fileString.substring(start,start+8);
+	}
+	
+	private void sortEventsStartTime(ArrayList<Event> events) {
+		for(int i = 0; i < events.size(); i++) {
+			
+			Event currEvent = events.get(i);
+			
+			int k = i;
+			for(int j = i+1; j < events.size(); j++) {
+				Event nextEvent = events.get(j);
+				if(currEvent.getStartDate() == nextEvent.getStartDate()) {
+					
+					if(currEvent.getStartTime() > nextEvent.getStartTime()) {
+						events.set(k, nextEvent);
+						events.set(j, currEvent);
+						k = j;
+					}
+					
+				}
+			}
+			// if a swap was made
+			if(k != i)
+				i--;
+		}
 	}
 }
