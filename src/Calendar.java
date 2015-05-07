@@ -3,13 +3,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-/** To-Do:
- * 
- * - Simplify getEndDate()
- * - Check if .ics files are valid
- * - sortEventsStartTime() for finding free times
- * - assert tests for input of common times
- */
 
 public class Calendar {
 
@@ -382,9 +375,7 @@ public class Calendar {
 				for(int i = 0; i < f.length; i++) {
 					files.add(f[i]);
 				}
-			}
-			
-			// Still have to check inputted .ics files for correctness			
+			}			
 
 		}
 		
